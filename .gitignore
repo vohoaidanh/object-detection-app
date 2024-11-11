@@ -1,0 +1,6 @@
+*.h5
+*.pth
+*.pt
+*.onnx
+*.weight
+model/
