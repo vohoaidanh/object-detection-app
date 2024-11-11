@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection with Bounding Boxes</title>
+    <style>
+        /* Đặt toàn bộ trang web vào giữa */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* Khung chứa input và button */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Tạo style cho button */
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Style cho input file */
+        input[type="file"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        /* Định dạng khung chứa hình ảnh gốc và kết quả */
+        .image-container, .canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-container img, .canvas-container canvas {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+         /* Khung chứa hình ảnh gốc */
+        .image-container {
+            width: 600px;       /* Đặt chiều rộng khung hình ảnh */
+            height: 400px;      /* Đặt chiều cao khung hình ảnh */
+            overflow: hidden;   /* Đảm bảo hình ảnh không tràn ra ngoài */
+            position: relative; /* Để căn chỉnh hình ảnh bên trong */
+        }
+
+        #originalImage {
+            max-width: 100%;    /* Đảm bảo hình ảnh không vượt quá chiều rộng khung */
+            max-height: 100%;   /* Đảm bảo hình ảnh không vượt quá chiều cao khung */
+            object-fit: contain; /* Giữ tỷ lệ gốc của hình ảnh */
+        }
+
+        /* Khung chứa canvas để hiển thị kết quả */
+        .canvas-container {
+            width: 600px;       /* Đặt chiều rộng canvas */
+            height: 400px;      /* Đặt chiều cao canvas */
+        }
+
+        #canvas {
+            height: 100%;       /* Đảm bảo canvas chiếm toàn bộ chiều cao của khung */
+            border: 1px solid #000; /* Thêm viền để dễ nhìn */
+        }
+    </style>
+</head>
+<body>
+    <form action="/update_url/" method="post" onsubmit="updateURL(event)">
+        <label for="url">Model Service URL:</label><br>
+        <input type="text" id="url" name="service_url" value="{{ url }}"><br>
+        <input type="submit" value="Update URL">
+    </form>
+    <h1>Object Detection with Bounding Boxes</h1>
+        <!-- Thêm liên kết để chuyển sang trang camera.html -->
+        <div>
+            <a href="{{ url_for('camera') }}">Go to Camera</a>
+        </div>
+    <!-- Khung chứa input và button -->
+    <div class="controls">
+        <input type="file" id="fileInput" accept="image/*">
+        <button onclick="handleDetect()">Detect</button>
+    </div>
+        
+    <!-- Khung chứa hình ảnh gốc -->
+    <div class="image-container">
+        <img id="originalImage" alt="Original Image" style="display: none;">
+    </div>
+    
+    <!-- Khung chứa canvas để hiển thị kết quả với bounding boxes -->
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
+  
+
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>

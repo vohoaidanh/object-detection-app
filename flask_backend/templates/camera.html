@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Stream</title>
+
+    <style>
+        .navigation {
+        margin-top: 20  px;
+        text-align: center; /* Căn giữa nội dung trong navigation */
+        }
+
+        .navigation a {
+            text-decoration: none;
+            color: #007BFF; /* Màu chữ */
+            font-size: 18px; /* Kích thước chữ */
+            font-weight: bold;
+            padding: 20px 10px;
+            display: inline-block; /* Đảm bảo nó hiển thị như một khối inline */
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        /* Reset margins, padding, and box-sizing to ensure consistency */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center; /* Căn giữa theo chiều ngang */
+        align-items: center; /* Căn giữa theo chiều dọc */
+        height: 100vh;
+        margin: 0; /* Loại bỏ margin mặc định của body */
+        padding: 20px;
+        flex-direction: column; /* Đặt các phần tử theo chiều dọc */
+        overflow: hidden; /* Đảm bảo không gian không bị tràn */
+        }
+
+        .container {
+            position: relative;
+            width: 600px;
+            height: 480px;
+            border: 2px solid #007BFF; /* Light blue border */
+            background-color: #000; /* Đảm bảo nền video đen */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Thêm bóng cho container */
+            overflow: hidden; /* Đảm bảo video và canvas không ra ngoài */
+        }
+
+        video, #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%; /* Chiếm 100% kích thước container */
+            height: 100%; /* Chiếm 100% kích thước container */
+            object-fit: cover; /* Đảm bảo video vừa vặn với container */
+        }
+
+        #canvas {
+            pointer-events: none; /* Để canvas không cản trở video */
+        }
+
+        /* Cải thiện bố cục của các nút và text */
+        #startButton, #stopButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #startButton:hover, #stopButton:hover {
+            background-color: #0056b3; /* Đổi màu khi hover */
+        }
+
+        /* Cải thiện bố cục của server response box */
+        #responseBox {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-family: monospace;
+            font-size: 14px;
+            background-color: #f9f9f9;
+            resize: vertical;
+        }
+
+        /* Tạo không gian xung quanh các phần tử */
+        h2 {
+            margin-bottom: 50px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .navigation {
+            margin-bottom: 10px;
+        }
+
+        .navigation a {
+            text-decoration: none;
+            color: #007BFF;
+            font-size: 16px;
+        }
+
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>   
+</head>
+<body>
+
+    <div>
+        <h2>Open Camera and Send Frames to Server</h2>
+        <!-- Thêm liên kết để chuyển sang trang camera.html -->
+        <div class="navigation">
+            <a href="{{ url_for('index') }}">Go to Home</a>
+        </div>
+        
+
+        <!-- Video element để hiển thị camera -->
+        <br>
+        <button id="startButton">Start Camera</button>
+        <button id="stopButton">Stop Camera</button>
+        <div class="container">
+            <video id="video" width="600" height="480" autoplay></video>
+            <!-- Canvas ẩn dùng để capture hình ảnh -->
+            <canvas id="canvas" width="600" height="480"></canvas>
+            <canvas id="captureCanvas" width="600" height="480" style="display:none;"></canvas>
+        </div>
+
+        <!-- Textbox để hiển thị phản hồi từ server -->
+        <div>
+            <h3>Server Response:</h3>
+            <textarea id="responseBox" rows="10" cols="50" readonly></textarea>
+        </div>
+    </div>
+
+    <script type="module"  src="{{ url_for('static', filename='camera.js') }}"></script>
+
+</body>
+</html>
