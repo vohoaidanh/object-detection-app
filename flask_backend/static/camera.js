@@ -88,7 +88,7 @@ async function sendFrameToServer(imageData) {
     formData.append("image", imageData);
 
     try {
-        const response = await fetch("http://localhost:5000/upload_frame", {
+        const response = await fetch("/upload_frame", {
             method: "POST",
             body: formData
         });
