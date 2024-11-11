@@ -24,7 +24,7 @@ function handleDetect() {
     formData.append('file', file);
 
     // Gửi ảnh tới server Flask và nhận JSON chứa bounding boxes
-    fetch("object-detection-app-production.up.railway.app/detect", {
+    fetch("/detect", {
         method: "POST",
         body: formData
     })
