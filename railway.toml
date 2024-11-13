@@ -1,0 +1,2 @@
+[build]
+cwd = "flask_backend"  # Chỉ định thư mục Flask để Railway build

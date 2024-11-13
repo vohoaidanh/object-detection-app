@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Camera Stream</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script type="module"  src="{{ url_for('static', filename='camera.js') }}"></script>
 
     <style>
         .navigation {
@@ -151,7 +153,6 @@
         </div>
     </div>
 
-    <script type="module"  src="{{ url_for('static', filename='camera.js') }}"></script>
 
 </body>
 </html>

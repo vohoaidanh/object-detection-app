@@ -12,6 +12,21 @@ const responseBox = document.getElementById('responseBox');
 let stream;
 let intervalId;  // Lưu ID của setInterval
 let imageCounter = 0;  // Biến đếm toàn cục để theo dõi số lần captureFrame được gọi
+let  detections  = []
+const socket = io();  // Kết nối tới server
+
+// Lắng nghe sự kiện 'detection_result' từ server
+socket.on('detection_result', function (data) {
+    if (data.error) {
+        console.error("Error received:", data.error);
+        alert("Error: " + data.error);
+    } else {
+        // Xử lý kết quả nhận được (result_data)
+        
+        detections = data.detections;
+
+    }
+});
 
 // Hàm bắt đầu camera
 async function startCamera() {
@@ -22,7 +37,7 @@ async function startCamera() {
         stopButton.disabled = false;
 
         // Bắt đầu gửi frame mỗi giây
-        intervalId = setInterval(captureFrame, 40);  // Chụp mỗi 1 giây
+        intervalId = setInterval(captureFrame, 100);  // Chụp mỗi 0.04 giây
     } catch (err) {
         console.error("Error accessing camera: ", err);
     }
@@ -45,8 +60,20 @@ function stopCamera() {
 }
 
 // Chụp frame từ video và gửi lên server
-let  detections  = []
-async function captureFrame() {
+function captureFrame() {
+
+    context_capture.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Chuyển đổi frame thành dữ liệu base64
+    const frameData = captureCanvas.toDataURL('image/jpeg');
+    //console.log("Sending new frame",frameData)
+    // Gửi frame qua socket
+    socket.emit('socket_upload_frame', { image: frameData });
+}
+
+
+
+async function captureFrame2() {
         // Tăng biến đếm và log số lần capture
     imageCounter++;
     //console.log("Image No.", imageCounter);
@@ -81,7 +108,6 @@ async function captureFrame() {
     //responseBox.value = JSON.stringify(detections, null, 2);
 }
 
-
 // Gửi frame đến server
 async function sendFrameToServer(imageData) {
     const formData = new FormData();
@@ -114,6 +140,7 @@ function drawBoundingBoxes() {
     context_draw.fillStyle = 'red';
 
     // Vẽ từng bounding box và thông tin trong detections
+
     detections.forEach(obj => {
         const { class_name, confidence, bounding_box: box } = obj;
 
@@ -140,8 +167,6 @@ video.addEventListener('play', () => {
     }
     update();
     });
-
-
     
 // Bắt đầu và dừng camera
 startButton.addEventListener('click', startCamera);

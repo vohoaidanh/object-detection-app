@@ -1,11 +1,18 @@
 # flask_backend/app.py
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template
 import requests
 from config import MODEL_SERVICE_URL
 from flask_cors import CORS  # Thêm thư viện CORS
+from flask_socketio import SocketIO, emit
+import os
+import base64
+from PIL import Image
+from io import BytesIO
+
 
 app = Flask(__name__)
 CORS(app)  # Kích hoạt CORS cho toàn bộ ứng dụng
+socketio = SocketIO(app, cors_allowed_origins="*")  # Dùng '*' cho phép tất cả các nguồn gốc kết nối
 
 # @app.before_request
 # def check_user_agent():
@@ -13,6 +20,47 @@ CORS(app)  # Kích hoạt CORS cho toàn bộ ứng dụng
 #     # Đảm bảo yêu cầu đến từ trình duyệt hoặc một user agent hợp lệ
 #     if 'Mozilla' not in user_agent:  # Các trình duyệt đều có "Mozilla" trong User-Agent
 #         return jsonify({"error": "API không cho phép yêu cầu từ bot!"}), 403
+
+@socketio.on('socket_upload_frame')
+def handle_frame(data):
+    
+    if not data:
+        emit('error', {'error': 'No image data received'})
+        return
+
+    try:
+        # Làm sạch dữ liệu base64 (xóa phần header của base64)
+        image_data = data['image']
+        image_data = image_data.split(",")[1]
+        # Chuyển đổi base64 thành ảnh
+        img_data = base64.b64decode(image_data)
+        image = Image.open(BytesIO(img_data))
+        # Chuyển ảnh thành bytes
+        image_bytes = BytesIO()
+        image.save(image_bytes, format='JPEG')  # Hoặc 'PNG', tùy thuộc vào định dạng ảnh bạn muốn
+        image_bytes.seek(0)  # Reset lại vị trí của stream sau khi ghi
+
+        # Gửi ảnh tới Model API (FastAPI)
+        files = {'file': image_bytes}
+        try:
+            response = requests.post(MODEL_SERVICE_URL, files=files)
+
+            if response.status_code == 200:
+                result_data = response.json()
+                emit('detection_result', result_data)  # Trả về kết quả từ detection service cho frontend
+            else:
+                emit('error', {'error': 'Failed to get a response from detection service'})
+        except requests.exceptions.RequestException as e:
+            emit('error', {'error': f'Error while calling model service: {str(e)}'})
+
+    except Exception as e:
+        emit('error', {'error': str(e)})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print("Client disconnected")
+    # Các thao tác cần làm khi client ngắt kết nối (ví dụ, cập nhật trạng thái, làm sạch tài nguyên)
+
 
 @app.route('/')  # Route cho trang chủ
 def index():
@@ -26,11 +74,9 @@ def detect():
     
     # Lấy file từ request
     file = request.files['file']
-    
     # Gửi file tới FastAPI detection service
     try:
         response = requests.post(MODEL_SERVICE_URL, files={'file': file.read()})
-
         if response.status_code == 200:
             result_data = response.json()
             #print("Received from FastAPI:", result_data)  # In ra để kiểm tra phản hồi
@@ -48,10 +94,7 @@ def camera():
 
 
 # Folder để lưu ảnh đã upload
-import os
-import base64
-from PIL import Image
-from io import BytesIO
+
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -84,7 +127,7 @@ def upload_frame():
             response = requests.post(MODEL_SERVICE_URL, files=files)
             if response.status_code == 200:
                 result_data = response.json()
-                print("Received from FastAPI:", result_data)  # In ra để kiểm tra phản hồi
+
                 return jsonify(result_data)  # Trả về kết quả từ detection service cho frontend
             else:
                 return jsonify({"error": "Failed to get a response from detection service"}), 500
@@ -107,5 +150,8 @@ if __name__ == '__main__':
     #waitress-serve --port=5000 app:app
     #app.run(port=5000, debug=True)
     from waitress import serve
-    serve(app, host='0.0.0.0', port=5000)
-
+    try:
+        socketio.run(app, host='0.0.0.0', port=5000)
+    except KeyboardInterrupt:
+        print("Server interrupted. Shutting down...")
+        socketio.stop()  # Dừng các kết nối socket khi server dừng
