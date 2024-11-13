@@ -1,4 +1,6 @@
 # flask_backend/app.py
+import eventlet
+eventlet.monkey_patch()
 from flask import Flask, request, jsonify, render_template
 import requests
 from config import MODEL_SERVICE_URL
@@ -8,6 +10,7 @@ import os
 import base64
 from PIL import Image
 from io import BytesIO
+
 
 
 app = Flask(__name__)
